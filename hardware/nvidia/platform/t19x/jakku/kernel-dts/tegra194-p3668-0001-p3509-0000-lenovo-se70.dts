@@ -1,0 +1,250 @@
+/*
+ * Top level DTS file for CVM:P3668-0001 and CVB:P3509-0000.
+ *
+ * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
+ *
+ * Changelog:
+ *  Aug/2023: Adapted for Lenovo ThinkEdge SE70, some nodes were copied
+ *            from the original diassembled DTB.
+ *  Author: Renê de Souza Pinto <rene@renesp.com.br>
+ */
+
+/dts-v1/;
+#include "common/tegra194-p3668-common.dtsi"
+#include "common/tegra194-p3509-0000-a00.dtsi"
+
+/ {
+	model = "ThinkEdge SE70 (NVIDIA Jetson Xavier NX)";
+	nvidia,dtsfilename = __FILE__;
+	nvidia,dtbbuildtime = __DATE__, __TIME__;
+
+	compatible = "nvidia,p3449-0000+p3668-0001", "nvidia,p3509-0000+p3668-0001", "nvidia,tegra194";
+
+	sdhci@3400000 {
+		status = "disabled";
+	};
+
+	reserved_memory {
+		inmate@c0000000 {
+			no-map;
+			reg = <0x00 0xc0000000 0x00 0xf700000>;
+		};
+
+		pci@cf700000 {
+			no-map;
+			reg = <0x00 0xcf700000 0x00 0x200000>;
+		};
+
+		ivshmem2@cf900000 {
+			no-map;
+			reg = <0x00 0xcf900000 0x00 0x100000>;
+		};
+
+		ivshmem@cfa00000 {
+			no-map;
+			reg = <0x00 0xcfa00000 0x00 0x100000>;
+		};
+
+		loader@cfb00000 {
+			no-map;
+			reg = <0x00 0xcfb00000 0x00 0x100000>;
+		};
+
+		jh@cfc00000 {
+			no-map;
+			reg = <0x00 0xcfc00000 0x00 0x400000>;
+		};
+	};
+
+	pinmux@c302000 {
+		status = "okay";
+
+		touch_clk_pcc4 {
+			nvidia,pins = "touch_clk_pcc4";
+			nvidia,function = "rsvd2";
+			nvidia,pull = <0x02>;
+			nvidia,tristate = <0x01>;
+			nvidia,enable-input = <0x01>;
+			nvidia,lpdr = <0x00>;
+		};
+	};
+
+	pinmux@2430028 {
+		status = "okay";
+
+		soc_gpio41_pq5 {
+			nvidia,pins = "soc_gpio41_pq5";
+			nvidia,function = "rsvd2";
+			nvidia,pull = <0x00>;
+			nvidia,tristate = <0x00>;
+			nvidia,enable-input = <0x00>;
+			nvidia,lpdr = <0x00>;
+			nvidia,io-high-voltage = <0x00>;
+		};
+	};
+
+	fixed-regulators {
+		ap2306gn_3v3_sd: regulator@999 {
+			compatible = "regulator-fixed";
+			regulator-name = "ap2306gn-3v3-sd";
+			regulator-min-microvolt = <0x325aa0>;
+			regulator-max-microvolt = <0x325aa0>;
+			gpio = <&tegra_main_gpio TEGRA194_MAIN_GPIO(Q, 5) 0>;
+			enable-active-high;
+			status = "okay";
+		};
+	};
+
+	thermal_fan_est {
+		status = "disabled";
+	};
+
+	ethernet@2490000 {
+		status = "disabled";
+	};
+};
+
+&spi0 {
+	status = "disabled";
+};
+
+&spi1 {
+	status = "disabled";
+};
+
+&qspi0 {
+	status = "disabled";
+};
+
+&sdmmc3 {
+	status = "okay";
+	uhs-mask = <0x78>;
+	mmc-ocr-mask = <0x00>;
+	cd-gpios = <&tegra_aon_gpio TEGRA194_AON_GPIO(CC, 4) 0>;
+	nvidia,cd-wakeup-capable;
+	vmmc-supply = <&ap2306gn_3v3_sd>;
+};
+
+&tegra_pwm2 {
+	status = "disabled";
+};
+
+&tegra_pwm5 {
+	status = "disabled";
+};
+
+&tegra_pwm6 {
+	status = "disabled";
+};
+
+&tegra_pwm7 {
+	status = "disabled";
+};
+
+&gen1_i2c {
+	rt5640.0-001c@1c {
+		compatible = "realtek,rt5640";
+		reg = <0x1c>;
+		realtek,dmic1-data-pin = <0x00>;
+		realtek,dmic2-data-pin = <0x00>;
+		clocks = <0x04 0x5d 0x04 0x68 0x04 0x07>;
+		clock-names = "pll_a\0pll_a_out0\0extern1";
+		#sound-dai-cells = <0x01>;
+		sound-name-prefix = "CVB-RT";
+		status = "okay";
+
+		port {
+			endpoint {
+				remote-endpoint = <0x29>;
+				mclk-fs = <0x100>;
+				link-name = "rt5640-playback";
+			};
+		};
+	};
+};
+
+&tegra_sound {
+	assigned-clock-rates = <0x00 0xbb8000>;
+	nvidia,num-codec-link = <0x02>;
+	nvidia-audio-card,widgets = "Headphone\0CVB-RT Headphone Jack\0Microphone\0CVB-RT Mic Jack\0Speaker\0CVB-RT Int Spk\0Microphone\0CVB-RT Int Mic";
+	nvidia-audio-card,routing = "CVB-RT Headphone Jack\0CVB-RT HPOR\0CVB-RT Headphone Jack\0CVB-RT HPOL\0CVB-RT Int Spk\0CVB-RT SPORP\0CVB-RT Int Spk\0CVB-RT SPORN\0CVB-RT Int Spk\0CVB-RT SPOLP\0CVB-RT Int Spk\0CVB-RT SPOLN\0CVB-RT IN1P\0CVB-RT Mic Jack\0CVB-RT Mic Jack\0CVB-RT MICBIAS1";
+
+	nvidia-audio-card,dai-link@80 {
+		link-name = "rt5640-playback";
+	};
+};
+
+&tegra_pinctrl {
+	pinctrl-names = "default";
+	pinctrl-0 = <&hdr40_pinmux>;
+
+	hdr40_pinmux: header-40pin-pinmux {
+		pin7 {
+			nvidia,pins = "aud_mclk_ps4";
+			nvidia,function = "aud";
+			nvidia,pull = <0x00>;
+			nvidia,tristate = <0x00>;
+			nvidia,enable-input = <0x00>;
+		};
+
+		pin11 {
+			nvidia,pins = "uart1_rts_pr4";
+			nvidia,function = "uarta";
+			nvidia,pull = <0x00>;
+			nvidia,tristate = <0x00>;
+			nvidia,enable-input = <0x00>;
+			nvidia,lpdr = <0x00>;
+		};
+
+		pin12 {
+			nvidia,pins = "dap5_sclk_pt5";
+			nvidia,function = "i2s5";
+			nvidia,pull = <0x01>;
+			nvidia,tristate = <0x00>;
+			nvidia,enable-input = <0x01>;
+		};
+
+		pin35 {
+			nvidia,pins = "dap5_fs_pu0";
+			nvidia,function = "i2s5";
+			nvidia,pull = <0x01>;
+			nvidia,tristate = <0x00>;
+			nvidia,enable-input = <0x01>;
+		};
+
+		pin36 {
+			nvidia,pins = "uart1_cts_pr5";
+			nvidia,function = "uarta";
+			nvidia,pull = <0x02>;
+			nvidia,tristate = <0x01>;
+			nvidia,enable-input = <0x01>;
+			nvidia,lpdr = <0x00>;
+		};
+
+		pin38 {
+			nvidia,pins = "dap5_din_pt7";
+			nvidia,function = "i2s5";
+			nvidia,pull = <0x01>;
+			nvidia,tristate = <0x01>;
+			nvidia,enable-input = <0x01>;
+		};
+
+		pin40 {
+			nvidia,pins = "dap5_dout_pt6";
+			nvidia,function = "i2s5";
+			nvidia,pull = <0x01>;
+			nvidia,tristate = <0x00>;
+			nvidia,enable-input = <0x00>;
+		};
+	};
+};
+
